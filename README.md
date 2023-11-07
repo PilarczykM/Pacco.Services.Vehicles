@@ -25,4 +25,4 @@ You can also start the service via Docker, either by building a local Dockerfile
 ----------------
 
 You can find the list of all HTTP requests in [Pacco.Services.Vehicles.rest](https://github.com/PilarczykM/Pacco.Services.Vehicle/Pacco.Services.Vehicles.rest) file placed in the root folder of the repository.
-This file is compatible with humao.rest-client plugin for [Visual Studio Code](https://code.visualstudio.com). 
+This file is compatible with `humao.rest-client` plugin for [Visual Studio Code](https://code.visualstudio.com). 
