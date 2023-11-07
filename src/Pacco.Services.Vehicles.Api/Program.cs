@@ -21,30 +21,30 @@ using Pacco.Services.Vehicles.Infrastructure;
 
 namespace Pacco.Services.Vehicles.Api
 {
-    public class Program
-    {
-        public static async Task Main(string[] args)
-            => await WebHost.CreateDefaultBuilder(args)
-                .ConfigureServices(services => services
-                    .AddConvey()
-                    .AddWebApi()
-                    .AddApplication()
-                    .AddInfrastructure()
-                    .Build())
-                .Configure(app => app
-                    .UseInfrastructure()
-                    .UseDispatcherEndpoints(endpoints => endpoints
-                        .Get("", ctx => ctx.Response.WriteAsync(ctx.RequestServices.GetService<AppOptions>().Name))
-                        .Get<GetVehicle, VehicleDto>("vehicles/{vehicleId}")
-                        .Get<SearchVehicles, PagedResult<VehicleDto>>("vehicles")
-                        .Post<AddVehicle>("vehicles",
-                            afterDispatch: (cmd, ctx) => ctx.Response.Created($"vehicles/{cmd.VehicleId}"))
-                        .Put<UpdateVehicle>("vehicles/{vehicleId}")
-                        .Delete<DeleteVehicle>("vehicles/{vehicleId}")
-                    ))
-                .UseLogging()
-                .UseVault()
-                .Build()
-                .RunAsync();
-    }
+	public class Program
+	{
+		public static async Task Main(string[] args)
+				=> await WebHost.CreateDefaultBuilder(args)
+						.ConfigureServices(services => services
+								.AddConvey()
+								.AddWebApi()
+								.AddApplication()
+								.AddInfrastructure()
+								.Build())
+						.Configure(app => app
+								.UseInfrastructure()
+								.UseDispatcherEndpoints(endpoints => endpoints
+										.Get("", ctx => ctx.Response.WriteAsync(ctx.RequestServices.GetService<AppOptions>().Name))
+										.Get<GetVehicle, VehicleDto>("vehicles/{vehicleId}")
+										.Get<SearchVehicles, PagedResult<VehicleDto>>("vehicles")
+										.Post<AddVehicle>("vehicles",
+												afterDispatch: (cmd, ctx) => ctx.Response.Created($"vehicles/{cmd.VehicleId}"))
+										.Put<UpdateVehicle>("vehicles/{vehicleId}")
+										.Delete<DeleteVehicle>("vehicles/{vehicleId}")
+								))
+						.UseLogging()
+						.UseVault()
+						.Build()
+						.RunAsync();
+	}
 }
