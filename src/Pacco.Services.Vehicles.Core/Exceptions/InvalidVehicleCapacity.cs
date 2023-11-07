@@ -1,10 +1,9 @@
-namespace Pacco.Services.Vehicles.Core.Exceptions
-{
-    public class InvalidVehicleCapacity : DomainException
-    {
-        public override string Code { get; } = "invalid_vehicle_capacity";
+namespace Pacco.Services.Vehicles.Core.Exceptions;
 
-        public InvalidVehicleCapacity(double capacity)
-            : base($"Vehicle capacity is invalid: {capacity}.") { }
-    }
+public class InvalidVehicleCapacity : DomainException
+{
+	public override string Code { get; } = "invalid_vehicle_capacity";
+
+	public InvalidVehicleCapacity(double capacity)
+			: base($"Vehicle capacity is invalid: {capacity}.") { }
 }
