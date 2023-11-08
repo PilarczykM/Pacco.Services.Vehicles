@@ -12,17 +12,17 @@ namespace Pacco.Services.Vehicles.Infrastructure.Exceptions
 {
 	internal sealed class ExceptionToResponseMapper : IExceptionToResponseMapper
 	{
-		private static readonly ConcurrentDictionary<Type, string> Codes = new ConcurrentDictionary<Type, string>();
+		private static readonly ConcurrentDictionary<Type, string> Codes = new();
 
 		public ExceptionResponse Map(Exception exception)
 				=> exception switch
 				{
 					DomainException ex => new ExceptionResponse(new { code = GetCode(ex), reason = ex.Message },
-									HttpStatusCode.BadRequest),
+										HttpStatusCode.BadRequest),
 					AppException ex => new ExceptionResponse(new { code = GetCode(ex), reason = ex.Message },
-									HttpStatusCode.BadRequest),
+										HttpStatusCode.BadRequest),
 					_ => new ExceptionResponse(new { code = "error", reason = "There was an error." },
-									HttpStatusCode.BadRequest)
+										HttpStatusCode.BadRequest)
 				};
 
 		private static string GetCode(Exception exception)

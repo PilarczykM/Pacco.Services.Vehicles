@@ -5,13 +5,13 @@ using Convey.Logging.CQRS;
 
 using Pacco.Services.Vehicles.Application.Commands;
 
-namespace Pacco.Services.Vehicles.Infrastructure.Logging
+namespace Pacco.Services.Vehicles.Infrastructure.Logging;
+
+internal sealed class MessageToLogTemplateMapper : IMessageToLogTemplateMapper
 {
-	internal sealed class MessageToLogTemplateMapper : IMessageToLogTemplateMapper
-	{
-		private static IReadOnlyDictionary<Type, HandlerLogTemplate> MessageTemplates
-				=> new Dictionary<Type, HandlerLogTemplate>
-				{
+	private static IReadOnlyDictionary<Type, HandlerLogTemplate> MessageTemplates
+			=> new Dictionary<Type, HandlerLogTemplate>
+			{
 								{
 										typeof(AddVehicle),
 										new HandlerLogTemplate
@@ -33,12 +33,11 @@ namespace Pacco.Services.Vehicles.Infrastructure.Logging
 												After = "Updated a vehicle with id: {VehicleId}."
 										}
 								},
-				};
+			};
 
-		public HandlerLogTemplate Map<TMessage>(TMessage message) where TMessage : class
-		{
-			var key = message.GetType();
-			return MessageTemplates.TryGetValue(key, out var template) ? template : null;
-		}
+	public HandlerLogTemplate Map<TMessage>(TMessage message) where TMessage : class
+	{
+		var key = message.GetType();
+		return MessageTemplates.TryGetValue(key, out var template) ? template : null;
 	}
 }

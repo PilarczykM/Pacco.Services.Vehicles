@@ -1,9 +1,8 @@
 using Pacco.Services.Vehicles.Application;
 
-namespace Pacco.Services.Vehicles.Infrastructure
+namespace Pacco.Services.Vehicles.Infrastructure;
+
+public interface IAppContextFactory
 {
-	public interface IAppContextFactory
-	{
-		IAppContext Create();
-	}
+	IAppContext Create();
 }
