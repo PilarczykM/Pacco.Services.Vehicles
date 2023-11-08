@@ -5,19 +5,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Pacco.Services.Vehicles.Application.Commands;
 
-namespace Pacco.Services.Vehicles.Infrastructure.Logging
+namespace Pacco.Services.Vehicles.Infrastructure.Logging;
+
+internal static class Extensions
 {
-	internal static class Extensions
+	public static IConveyBuilder AddHandlersLogging(this IConveyBuilder builder)
 	{
-		public static IConveyBuilder AddHandlersLogging(this IConveyBuilder builder)
-		{
-			var assembly = typeof(AddVehicle).Assembly;
+		var assembly = typeof(AddVehicle).Assembly;
 
-			builder.Services.AddSingleton<IMessageToLogTemplateMapper>(new MessageToLogTemplateMapper());
+		builder.Services.AddSingleton<IMessageToLogTemplateMapper>(new MessageToLogTemplateMapper());
 
-			return builder
-					.AddCommandHandlersLogging(assembly)
-					.AddEventHandlersLogging(assembly);
-		}
+		return builder
+				.AddCommandHandlersLogging(assembly)
+				.AddEventHandlersLogging(assembly);
 	}
 }

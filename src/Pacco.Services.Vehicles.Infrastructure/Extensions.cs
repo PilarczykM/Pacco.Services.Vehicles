@@ -44,90 +44,89 @@ using Pacco.Services.Vehicles.Infrastructure.Mongo.Documents;
 using Pacco.Services.Vehicles.Infrastructure.Mongo.Repositories;
 using Pacco.Services.Vehicles.Infrastructure.Services;
 
-namespace Pacco.Services.Vehicles.Infrastructure
+namespace Pacco.Services.Vehicles.Infrastructure;
+
+public static class Extensions
 {
-	public static class Extensions
+	public static IConveyBuilder AddInfrastructure(this IConveyBuilder builder)
 	{
-		public static IConveyBuilder AddInfrastructure(this IConveyBuilder builder)
-		{
-			builder.Services.AddTransient<IVehiclesRepository, VehiclesMongoRepository>();
-			builder.Services.AddTransient<IMessageBroker, MessageBroker>();
-			builder.Services.AddTransient<IAppContextFactory, AppContextFactory>();
-			builder.Services.AddTransient(ctx => ctx.GetRequiredService<IAppContextFactory>().Create());
-			builder.Services.TryDecorate(typeof(ICommandHandler<>), typeof(OutboxCommandHandlerDecorator<>));
-			builder.Services.TryDecorate(typeof(IEventHandler<>), typeof(OutboxEventHandlerDecorator<>));
+		builder.Services.AddTransient<IVehiclesRepository, VehiclesMongoRepository>();
+		builder.Services.AddTransient<IMessageBroker, MessageBroker>();
+		builder.Services.AddTransient<IAppContextFactory, AppContextFactory>();
+		builder.Services.AddTransient(ctx => ctx.GetRequiredService<IAppContextFactory>().Create());
+		builder.Services.TryDecorate(typeof(ICommandHandler<>), typeof(OutboxCommandHandlerDecorator<>));
+		builder.Services.TryDecorate(typeof(IEventHandler<>), typeof(OutboxEventHandlerDecorator<>));
 
-			return builder
-					.AddErrorHandler<ExceptionToResponseMapper>()
-					.AddQueryHandlers()
-					.AddInMemoryQueryDispatcher()
-					.AddHttpClient()
-					.AddConsul()
-					.AddFabio()
-					.AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
-					.AddMessageOutbox(o => o.AddMongo())
-					.AddExceptionToMessageMapper<ExceptionToMessageMapper>()
-					.AddMongo()
-					.AddRedis()
-					.AddMetrics()
-					.AddJaeger()
-					.AddMongo()
-					.AddHandlersLogging()
-					.AddMongoRepository<VehicleDocument, Guid>("vehicles")
-					.AddWebApiSwaggerDocs()
-					.AddSecurity();
+		return builder
+				.AddErrorHandler<ExceptionToResponseMapper>()
+				.AddQueryHandlers()
+				.AddInMemoryQueryDispatcher()
+				.AddHttpClient()
+				.AddConsul()
+				.AddFabio()
+				.AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
+				.AddMessageOutbox(o => o.AddMongo())
+				.AddExceptionToMessageMapper<ExceptionToMessageMapper>()
+				.AddMongo()
+				.AddRedis()
+				.AddMetrics()
+				.AddJaeger()
+				.AddMongo()
+				.AddHandlersLogging()
+				.AddMongoRepository<VehicleDocument, Guid>("vehicles")
+				.AddWebApiSwaggerDocs()
+				.AddSecurity();
+	}
+
+	public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
+	{
+		app.UseErrorHandler()
+				.UseSwaggerDocs()
+				.UseJaeger()
+				.UseConvey()
+				.UsePublicContracts<ContractAttribute>()
+				.UseMetrics()
+				.UseRabbitMq()
+				.SubscribeCommand<AddVehicle>()
+				.SubscribeCommand<UpdateVehicle>()
+				.SubscribeCommand<DeleteVehicle>();
+
+		return app;
+	}
+
+	internal static CorrelationContext GetCorrelationContext(this IHttpContextAccessor accessor)
+			=> accessor.HttpContext?.Request.Headers.TryGetValue("Correlation-Context", out var json) is true
+					? JsonConvert.DeserializeObject<CorrelationContext>(json.FirstOrDefault())
+					: null;
+
+	internal static IDictionary<string, object> GetHeadersToForward(this IMessageProperties messageProperties)
+	{
+		const string sagaHeader = "Saga";
+		if (messageProperties?.Headers is null || !messageProperties.Headers.TryGetValue(sagaHeader, out var saga))
+		{
+			return null;
 		}
 
-		public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
+		return saga is null
+				? null
+				: new Dictionary<string, object>
+				{
+					[sagaHeader] = saga
+				};
+	}
+
+	internal static string GetSpanContext(this IMessageProperties messageProperties, string header)
+	{
+		if (messageProperties is null)
 		{
-			app.UseErrorHandler()
-					.UseSwaggerDocs()
-					.UseJaeger()
-					.UseConvey()
-					.UsePublicContracts<ContractAttribute>()
-					.UseMetrics()
-					.UseRabbitMq()
-					.SubscribeCommand<AddVehicle>()
-					.SubscribeCommand<UpdateVehicle>()
-					.SubscribeCommand<DeleteVehicle>();
-
-			return app;
-		}
-
-		internal static CorrelationContext GetCorrelationContext(this IHttpContextAccessor accessor)
-				=> accessor.HttpContext?.Request.Headers.TryGetValue("Correlation-Context", out var json) is true
-						? JsonConvert.DeserializeObject<CorrelationContext>(json.FirstOrDefault())
-						: null;
-
-		internal static IDictionary<string, object> GetHeadersToForward(this IMessageProperties messageProperties)
-		{
-			const string sagaHeader = "Saga";
-			if (messageProperties?.Headers is null || !messageProperties.Headers.TryGetValue(sagaHeader, out var saga))
-			{
-				return null;
-			}
-
-			return saga is null
-					? null
-					: new Dictionary<string, object>
-					{
-						[sagaHeader] = saga
-					};
-		}
-
-		internal static string GetSpanContext(this IMessageProperties messageProperties, string header)
-		{
-			if (messageProperties is null)
-			{
-				return string.Empty;
-			}
-
-			if (messageProperties.Headers.TryGetValue(header, out var span) && span is byte[] spanBytes)
-			{
-				return Encoding.UTF8.GetString(spanBytes);
-			}
-
 			return string.Empty;
 		}
+
+		if (messageProperties.Headers.TryGetValue(header, out var span) && span is byte[] spanBytes)
+		{
+			return Encoding.UTF8.GetString(spanBytes);
+		}
+
+		return string.Empty;
 	}
 }
